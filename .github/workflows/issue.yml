@@ -5,6 +5,9 @@ on:
     types:
       - closed
 
+permissions:
+  issues: write
+
 jobs:
   commentOnClose:
     runs-on: ubuntu-latest
