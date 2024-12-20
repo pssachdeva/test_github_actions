@@ -10,10 +10,10 @@ permissions:
 
 
 jobs:
-  checkAndComment:
+  checkCommentAndReopen:
     runs-on: ubuntu-latest
     steps:
-      - name: Check last comment and post if necessary
+      - name: Check last comment and act accordingly
         uses: actions/github-script@v6
         with:
           script: |
@@ -32,11 +32,21 @@ jobs:
             if (lastComment && lastComment.body.trim() === "I am a bad dog.") {
               console.log("Last comment matches the specific form. No action needed.");
             } else {
-              console.log("Last comment does not match or no comments exist. Adding a new comment.");
+              console.log("Last comment does not match or no comments exist. Adding a new comment and reopening the issue.");
+
+              // Add a new comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
                 body: "I am a bad dog.",
+              });
+
+              // Reopen the issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: "open",
               });
             }
