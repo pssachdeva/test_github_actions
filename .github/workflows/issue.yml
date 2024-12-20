@@ -8,17 +8,35 @@ on:
 permissions:
   issues: write
 
+
 jobs:
-  commentOnClose:
+  checkAndComment:
     runs-on: ubuntu-latest
     steps:
-      - name: Add comment to the closed issue
+      - name: Check last comment and post if necessary
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.issues.createComment({
+            const issueNumber = context.payload.issue.number;
+
+            // Get all comments on the issue
+            const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
-              body: "Thank you for closing this issue! 🎉 If you have more questions, feel free to open a new one."
+              issue_number: issueNumber,
             });
+
+            // Check the last comment
+            const lastComment = comments.data.pop(); // Get the last comment (if any)
+
+            if (lastComment && lastComment.body.trim() === "I am a bad dog.") {
+              console.log("Last comment matches the specific form. No action needed.");
+            } else {
+              console.log("Last comment does not match or no comments exist. Adding a new comment.");
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: "I am a bad dog.",
+              });
+            }
